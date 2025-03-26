@@ -39,12 +39,32 @@ export class ArticlesService {
   }
 
   publishArticle(article: Article): Observable<ArticleResponse> {
-    if (article.slug) {
-      return this.apiService.put<ArticleResponse, ArticleResponse>('/articles/' + article.slug, {
-        article: article,
-      });
+    let tagList: string[];
+
+    if (Array.isArray(article.tagList)) {
+      tagList = article.tagList;
+    } else if (typeof article.tagList === 'string') {
+      tagList = article.tagList.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+    } else {
+      tagList = [];
     }
-    return this.apiService.post<ArticleResponse, ArticleResponse>('/articles/', { article: article });
+
+    const normalizedArticle = {
+      ...article,
+      tagList,
+    };
+
+    if (article.slug) {
+      return this.apiService.put<ArticleResponse, ArticleResponse>(
+        '/articles/' + article.slug,
+        { article: normalizedArticle }
+      );
+    }
+
+    return this.apiService.post<ArticleResponse, ArticleResponse>(
+      '/articles/',
+      { article: normalizedArticle }
+    );
   }
 
   // TODO: remove any
